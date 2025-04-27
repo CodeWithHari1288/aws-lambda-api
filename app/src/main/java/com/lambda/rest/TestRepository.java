@@ -16,19 +16,11 @@ import java.util.List;
 @Repository
 public class TestRepository {
 
-    @Autowired
-    RestTemplate restTemplate;
-
-    @Value("${test.url}")
-    private String url;
-
+    
     @GetMapping
     public ResponseEntity getMethod(){
 
-        RestTemplate template = new RestTemplate();
-        ResponseEntity<Posts[]> forObject = template.getForEntity(url, Posts[].class );
-        Posts[] posts = forObject.getBody();
-        List<Posts> list = Arrays.asList(posts);
-        return new ResponseEntity<>(list,HttpStatus.ACCEPTED);
+         return new ResponseEntity<>("Returning Value from REST Get",HttpStatus.ACCEPTED);
+
     }
 }
