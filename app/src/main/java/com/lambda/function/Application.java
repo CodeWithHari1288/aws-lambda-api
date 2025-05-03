@@ -1,6 +1,6 @@
-package com.lambda;
+package com.lambda.function;
 
-import com.lambda.rest.TestRepository;
+import com.lambda.function.rest.TestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
