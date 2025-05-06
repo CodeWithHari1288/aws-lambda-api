@@ -38,4 +38,18 @@ public class RestControllerDummy {
         System.out.println("Inside Rest Endpoint");
         return new ResponseEntity<ArrayList>(handler.getAllTodos(),HttpStatus.ACCEPTED);
     }
+
+    @GetMapping("/albums")
+    public ResponseEntity<Albums[]> getUsers(){
+
+        RestClient client = RestClient.create();
+
+        System.out.println("Inside Albums Rest Endpoint");
+        return  new ResponseEntity<>(client.get()
+                .uri("https://jsonplaceholder.typicode.com/albums")
+                .retrieve()
+                .body(Albums[].class), HttpStatus.ACCEPTED);
+
+
+    }
 }

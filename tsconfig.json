@@ -22,7 +22,10 @@
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+    "paths": {
+      "/opt/first": ["./layers/first/firstLayer"]
+   }
   },
   "exclude": [
     "node_modules",

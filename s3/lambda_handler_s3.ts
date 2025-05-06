@@ -3,15 +3,28 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 export const handler = async () => {
 
-   const client = new DynamoDBClient({});
+   const client = new DynamoDBClient({region:"us-east-1"});
    const docClient = DynamoDBDocumentClient.from(client);
+   console.log("INSERTING IN ................."); 
 
-   const command = new PutCommand({
-    TableName: "DummyDynamoDB",
+//    const command = new PutCommand({
+//     TableName: "DummyTable",
+//     Item: {
+//       id: Math.random().toString(32),
+//       s3inserted: "S3 Bucket Inserted/Updated",
+//     },
+//   });
+
+//   console.log(command);
+  await docClient.send(new PutCommand({
+    TableName: 'DummyTable',
     Item: {
-      s3inserted: "S3 Bucket Inserted/Updated",
+      id: Math.random().toString(32)
     },
+  })).then(data=>{
+    console.log(data + "1111111111111")
+  }).catch(e=>{
+    console.log("exception ........" + e)
   });
-
 
 }
