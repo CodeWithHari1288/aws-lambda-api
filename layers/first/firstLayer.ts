@@ -1,7 +1,24 @@
-export const firstLayer: any = async () => {
-    
-    await fetch("https://jsonplaceholder.typicode.com/albums")
-    .then(data=>console.log("DATA.......... "+ JSON.stringify(data)))
-    .catch(e=>console.log("Error : " + e));
+   
+   
+// interface Albums {
+//   userId: string;
+//   id: string;
+//   title: string
+// }
 
-  };
+import Albums from "../../interfaces/Albums";
+
+export const firstLayer = async () => {
+ 
+
+    let resp: Albums[] = [];
+   console.log("response " );   
+
+    const res = await fetch("https://jsonplaceholder.typicode.com/albums");
+
+    resp = await res.json();
+    console.log("response " +resp );   
+   
+return resp;
+
+}

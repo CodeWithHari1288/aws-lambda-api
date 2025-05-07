@@ -7,13 +7,14 @@ import {Subnet, SubnetType, Vpc} from "aws-cdk-lib/aws-ec2";
 import {Alias, Architecture, Code, Runtime, SnapStartConf} from "aws-cdk-lib/aws-lambda";
 import {ScalableTarget, ServiceNamespace} from "aws-cdk-lib/aws-applicationautoscaling";
 import { BlockPublicAccess, Bucket, EventType } from 'aws-cdk-lib/aws-s3';
-import { Effect, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Effect, ManagedPolicy, Policy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { SubnetGroup } from 'aws-cdk-lib/aws-rds';
 import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Repository } from 'aws-cdk-lib/aws-ecr';
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -60,17 +61,48 @@ export class AwsLambdaApiStack extends cdk.Stack {
     const nodeJsFnProps: NodejsFunctionProps = {
       runtime: Runtime.NODEJS_20_X,
       timeout: cdk.Duration.minutes(3),
-      memorySize: 256,
+      memorySize: 128,
     };
 
     const lambdaWithLayer = new NodejsFunction(this, 'typescriptLambdaWithLayer', {
-      entry: path.join(__dirname, '../lambda', 'lambda_handler_test.ts'),
+      entry: path.join(__dirname, '../lambdalayer', 'lambda_layer_handler.ts'),
       ...nodeJsFnProps,
       functionName: 'lambdaWithRestServiceAsLayer',
       handler: 'handler',
       layers: [firstLr]
     });
 
+    const lambdaRole = new Role(
+      this,
+      `lambda-execution-role`, {
+        assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+        roleName: `lambda-execution-role`,
+        description: "Lambda function execution role that allows the function to write to CloudWatch and read from ECR",
+        managedPolicies: [
+          ManagedPolicy.fromManagedPolicyArn(
+            this,
+            "cloudwatch-full-access",
+            "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+          ),
+          ManagedPolicy.fromManagedPolicyArn(
+            this,
+            "ecr-read-access",
+            "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+          ),
+        ],
+      }
+    );
+
+     
+    const ecrRepo = Repository.fromRepositoryName(this,"dockerinecrforlambda","springprojects");
+    const lambdaWithECR = new aws_lambda.DockerImageFunction(this, "LambdaWithECR",
+      {
+         code: aws_lambda.DockerImageCode.fromEcr(ecrRepo),
+         memorySize: 512,
+         role: lambdaRole
+      }
+    );
+        
 
     const lambda_multiply_typescript = new aws_lambda.Function(this,"TypescriptLambdaHandler" , {
       runtime : aws_lambda.Runtime.NODEJS_20_X,
@@ -116,6 +148,16 @@ export class AwsLambdaApiStack extends cdk.Stack {
             "MAIN_CLASS" : "com.lambda.serverless.Application"
            }
          });
+
+
+         const api_lambda_layer = new LambdaRestApi(this, 'LambdaLayer', {
+          handler: lambdaWithLayer,
+          proxy: false,
+        });
+    
+    
+        const lambdaLayerResource = api_lambda_layer.root.addResource('lambdaLayer');
+        lambdaLayerResource.addMethod('GET');
 
     const api_typescript = new LambdaRestApi(this, 'TypescriptLambda', {
       handler: lambda_multiply_typescript,

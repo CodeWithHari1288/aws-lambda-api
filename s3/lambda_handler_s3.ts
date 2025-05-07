@@ -19,7 +19,8 @@ export const handler = async () => {
   await docClient.send(new PutCommand({
     TableName: 'DummyTable',
     Item: {
-      id: Math.random().toString(32)
+      id: Math.random().toString(32),
+      action: "Added a new folder in S3"
     },
   })).then(data=>{
     console.log(data + "1111111111111")
