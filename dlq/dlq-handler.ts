@@ -1,3 +1,5 @@
-export const handler = ()=>{
-    console.log("Processing in dlq-handler");
-}
+export const handler =  async (event: { Records: any[]; }) => {
+    event.Records.forEach((record) => {
+      console.log('DLQ  SQS ', record);
+    });
+  };

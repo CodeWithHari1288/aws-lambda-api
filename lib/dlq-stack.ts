@@ -18,7 +18,7 @@ export class DLQ extends Stack {
     });
 
     const fifoQueue = new Queue(this, "eventSeqFifoQ", {
-      queueName: "mailbox.fifo",
+      queueName: "first.fifo",
       deliveryDelay: Duration.millis(0),
       contentBasedDeduplication: true,
       fifo: true,
@@ -41,7 +41,6 @@ export class DLQ extends Stack {
     });
 
     new CfnOutput(this, 'FIFO_QUEUE_URL', { value: fifoQueue.queueUrl});
-
     fifoQueue.grantSendMessages(sender);
 
     const processor = new aws_lambda.Function(this, "processorFn", {
