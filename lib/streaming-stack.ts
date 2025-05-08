@@ -11,13 +11,6 @@ export class Streaming extends Stack {
       super(scope, id, props);
 
 
-    //   const lambda_streaming = new aws_lambda.Function(this,"streaminglambdahandler" , {
-    //         runtime : aws_lambda.Runtime.NODEJS_20_X,
-    //         code :  aws_lambda.Code.fromAsset(path.join(__dirname,'/../streamify')),
-    //         handler : "streaming.handler",
-    //         allowPublicSubnet: true,
-    //       }
-    //     );
 
         const nodeJsFnProps: NodejsFunctionProps = {
               runtime: Runtime.NODEJS_20_X,

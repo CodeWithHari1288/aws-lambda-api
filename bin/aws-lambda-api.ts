@@ -4,6 +4,7 @@ import { AwsLambdaApiStack } from '../lib/aws-lambda-api-stack';
 import { DLQ } from '../lib/dlq-stack';
 import { Streaming } from '../lib/streaming-stack';
 import { EventBridgeStack } from '../lib/eventbridge-stack';
+import { SecretsStack } from '../lib/secrets-stack';
 
 const app = new cdk.App();
 new AwsLambdaApiStack(app, 'AwsLambdaApiStack', {
@@ -29,6 +30,13 @@ new Streaming(app, 'Streaming' , {
 
 
 new EventBridgeStack(app, 'EventBridge' , {
+  env: {  account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: 'us-east-1'
+},
+})
+
+
+new SecretsStack(app, 'secretsStack' , {
   env: {  account: process.env.CDK_DEFAULT_ACCOUNT,
     region: 'us-east-1'
 },

@@ -4,7 +4,7 @@ import {aws_ec2, aws_lambda, RemovalPolicy} from "aws-cdk-lib";
 import * as path from "node:path";
 import {LambdaRestApi} from "aws-cdk-lib/aws-apigateway";
 import {Subnet, SubnetType, Vpc} from "aws-cdk-lib/aws-ec2";
-import {Alias, Architecture, Code, Runtime, SnapStartConf} from "aws-cdk-lib/aws-lambda";
+import {Alias, Architecture, Code, FunctionUrlAuthType, Runtime, SnapStartConf} from "aws-cdk-lib/aws-lambda";
 import {ScalableTarget, ServiceNamespace} from "aws-cdk-lib/aws-applicationautoscaling";
 import { BlockPublicAccess, Bucket, EventType } from 'aws-cdk-lib/aws-s3';
 import { Effect, ManagedPolicy, Policy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -112,6 +112,16 @@ export class AwsLambdaApiStack extends cdk.Stack {
       allowPublicSubnet: true,
     }
   );
+  const fnUrl = lambda_multiply_typescript.addFunctionUrl({
+    authType: FunctionUrlAuthType.NONE,
+    cors: {
+      allowedOrigins: ['*']
+    }
+  });
+
+   new cdk.CfnOutput(this, 'LambdaFunctionUrl', {
+    value: fnUrl.url
+  });
 
  const myVpc =  Vpc.fromLookup(this,"defaultVpc", {
     isDefault: true
