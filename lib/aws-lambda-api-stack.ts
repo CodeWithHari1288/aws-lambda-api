@@ -4,7 +4,7 @@ import {aws_ec2, aws_lambda, RemovalPolicy} from "aws-cdk-lib";
 import * as path from "node:path";
 import {LambdaRestApi} from "aws-cdk-lib/aws-apigateway";
 import {Subnet, SubnetType, Vpc} from "aws-cdk-lib/aws-ec2";
-import {Alias, Architecture, Code, FunctionUrlAuthType, Runtime, SnapStartConf} from "aws-cdk-lib/aws-lambda";
+import {Alias, Architecture, Code, FunctionUrlAuthType, LayerVersion, Runtime, SnapStartConf} from "aws-cdk-lib/aws-lambda";
 import {ScalableTarget, ServiceNamespace} from "aws-cdk-lib/aws-applicationautoscaling";
 import { BlockPublicAccess, Bucket, EventType } from 'aws-cdk-lib/aws-s3';
 import { Effect, ManagedPolicy, Policy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -15,6 +15,7 @@ import { Topic } from 'aws-cdk-lib/aws-sns';
 import { SubnetGroup } from 'aws-cdk-lib/aws-rds';
 import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
+
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -149,6 +150,7 @@ export class AwsLambdaApiStack extends cdk.Stack {
     
     // new aws_lambda.Alias(this, 'ConLambdaAlias', aliasOptions);
 
+       
 
      const lambda_serverless = new aws_lambda.Function(this,"JavaLambdaServerlessHandler" , {
            runtime : aws_lambda.Runtime.JAVA_17,
@@ -156,9 +158,20 @@ export class AwsLambdaApiStack extends cdk.Stack {
            handler : "com.lambda.serverless.ServerlessHandler::handleRequest",
            environment : {
             "MAIN_CLASS" : "com.lambda.serverless.Application"
-           }
+           },
+          snapStart: aws_lambda.SnapStartConf.ON_PUBLISHED_VERSIONS
          });
 
+         const cfnDiscovery = new cdk.aws_applicationsignals.CfnDiscovery(this,
+          'ApplicationSignalsServiceRole', { }
+        );
+         lambda_serverless.role?.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('CloudWatchLambdaApplicationSignalsExecutionRolePolicy'));
+
+         lambda_serverless.addLayers(LayerVersion.fromLayerVersionArn(
+          this, 'AwsLambdaLayerForOtel',
+          'arn:aws:lambda:us-east-1:615299751070:layer:AWSOpenTelemetryDistroJava:3'
+      ))
+      lambda_serverless.addEnvironment("AWS_LAMBDA_EXEC_WRAPPER", "/opt/otel-instrument");
 
          const api_lambda_layer = new LambdaRestApi(this, 'LambdaLayer', {
           handler: lambdaWithLayer,
